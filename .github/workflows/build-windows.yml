@@ -1,0 +1,80 @@
+name: Build Windows MSI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-windows-msi:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Install frontend dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Install Windows dependencies
+        shell: pwsh
+        run: |
+          choco install cmake llvm -y --no-progress
+          echo "C:\Program Files\LLVM\bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+          echo "C:\Program Files\CMake\bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+
+      - name: Download ffmpeg
+        shell: pwsh
+        working-directory: src-tauri
+        run: |
+          $ffmpegUrl = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
+          $zipPath = "$env:RUNNER_TEMP\ffmpeg-essentials.zip"
+          Write-Host "Downloading ffmpeg..."
+          Invoke-WebRequest -Uri $ffmpegUrl -OutFile $zipPath -MaximumRetryCount 3
+          Write-Host "Extracting ffmpeg..."
+          $extractPath = "$env:RUNNER_TEMP\ffmpeg"
+          Expand-Archive -Path $zipPath -DestinationPath $extractPath -Force
+          $binDir = Get-ChildItem -Path $extractPath -Directory | Where-Object { $_.Name -match "ffmpeg-.*-essentials_build" } | ForEach-Object { Join-Path $_.FullName "bin" }
+          if (-not $binDir) {
+            Write-Error "ffmpeg essentials build directory not found"
+            exit 1
+          }
+          Write-Host "Copying ffmpeg binaries from $binDir to src-tauri..."
+          Copy-Item -Path "$binDir\*" -Destination "." -Force
+          Write-Host "Verifying ffmpeg.exe..."
+          if (-not (Test-Path ".\ffmpeg.exe")) {
+            Write-Error "ffmpeg.exe not found after copy"
+            exit 1
+          }
+          Write-Host "ffmpeg.exe is ready"
+
+      - name: Set LIBCLANG_PATH
+        shell: bash
+        run: echo "LIBCLANG_PATH=C:/Program Files/LLVM/bin" >> "$GITHUB_ENV"
+
+      - name: Clean whisper-rs-sys build cache
+        working-directory: src-tauri
+        run: cargo clean -p whisper-rs-sys
+
+      - name: Build Windows MSI
+        run: yarn tauri build --features gui --config src-tauri/tauri.windows.cpu.conf.json --bundles msi
+
+      - name: Upload MSI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ShadowVerse-Windows-CPU-MSI
+          path: src-tauri/target/release/bundle/msi/*.msi
+          if-no-files-found: error
