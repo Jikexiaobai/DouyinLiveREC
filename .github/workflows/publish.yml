@@ -155,6 +155,7 @@ jobs:
         env:
           # If RELEASE_TOKEN exists (PAT with repo scope), prefer it.
           # Fallback to the default GITHUB_TOKEN.
+          WHISPER_DONT_GENERATE_BINDINGS: "1"
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN != '' && secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
