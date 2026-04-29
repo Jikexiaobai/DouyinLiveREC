@@ -31,7 +31,7 @@
   };
 
   // 可用的模型列表
-  let availableModels = [];
+  let availableModels: Array<{ value: string; label: string }> = [];
 
   const toolCallStates = new Map<string, 'confirmed' | 'rejected' | 'none'>();
 
@@ -108,9 +108,14 @@
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = await response.json();
-      if (data.data && Array.isArray(data.data)) {
-        return data.data.map((model: any) => ({
+      const data: any = await response.json();
+      const modelList = Array.isArray(data?.data)
+        ? data.data
+        : Array.isArray(data)
+          ? data
+          : [];
+      if (modelList.length > 0) {
+        return modelList.map((model: any) => ({
           value: model.id,
           label: model.id
         }));
@@ -140,23 +145,77 @@
 
   function loadSettings() {
     const savedSettings = localStorage.getItem('ai_settings');
-    if (savedSettings) {
-      settings = { ...settings, ...JSON.parse(savedSettings) };
-      // 只有当有必要的设置时才创建agent
-      if (settings.api_key && settings.endpoint) {
-        agent = createAgent({
-          apiKey: settings.api_key || undefined,
-          baseURL: settings.endpoint || undefined,
-          model: settings.model || undefined,
-        });
-        // 加载模型列表
-        loadModels();
-      } else {
-        agent = null;
-      }
+    if (!savedSettings) {
+      agent = null;
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(savedSettings);
+      settings = {
+        ...settings,
+        endpoint: typeof parsed?.endpoint === "string" ? parsed.endpoint : "",
+        api_key: typeof parsed?.api_key === "string" ? parsed.api_key : "",
+        model: typeof parsed?.model === "string" ? parsed.model : "",
+      };
+    } catch (error) {
+      console.warn("Failed to parse ai_settings, resetting it.", error);
+      localStorage.removeItem("ai_settings");
+      agent = null;
+      return;
+    }
+
+    if (settings.api_key && settings.endpoint) {
+      agent = createAgent({
+        apiKey: settings.api_key || undefined,
+        baseURL: settings.endpoint || undefined,
+        model: settings.model || undefined,
+      });
+      loadModels();
     } else {
       agent = null;
     }
+  }
+
+  function restoreMessage(message: any) {
+    if (!message || typeof message !== "object") {
+      return null;
+    }
+
+    const messageType = Array.isArray(message.id)
+      ? message.id.join(",")
+      : String(message.id || "");
+
+    if (messageType.includes("HumanMessage")) {
+      const msg = new HumanMessage(message.kwargs);
+      if (message.additional_kwargs?.timestamp) {
+        msg.additional_kwargs = {
+          ...msg.additional_kwargs,
+          timestamp: message.additional_kwargs.timestamp
+        };
+      }
+      return msg;
+    } else if (messageType.includes("AIMessage")) {
+      const msg = new AIMessage(message.kwargs);
+      if (message.additional_kwargs?.timestamp) {
+        msg.additional_kwargs = {
+          ...msg.additional_kwargs,
+          timestamp: message.additional_kwargs.timestamp
+        };
+      }
+      return msg;
+    } else if (messageType.includes("ToolMessage")) {
+      const msg = new ToolMessage(message.kwargs);
+      if (message.additional_kwargs?.timestamp) {
+        msg.additional_kwargs = {
+          ...msg.additional_kwargs,
+          timestamp: message.additional_kwargs.timestamp
+        };
+      }
+      return msg;
+    }
+
+    return null;
   }
 
   function getToolCallState(message: any): 'confirmed' | 'rejected' | 'none' {
@@ -391,52 +450,34 @@
   onMount(async () => {
     // 加载设置
     loadSettings();
-    
-    const previousMessages = JSON.parse(localStorage.getItem('messages') || '[]');
+
+    let previousMessages: any[] = [];
+    try {
+      const parsed = JSON.parse(localStorage.getItem('messages') || '[]');
+      previousMessages = Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      console.warn("Failed to parse messages cache, resetting it.", error);
+      localStorage.removeItem("messages");
+    }
+
     // reconstruct messages
-    messages = previousMessages.map((message: any) => {
-      // if HumanMessage in messgae.id array
-      if (message.id.includes('HumanMessage')) {
-        const msg = new HumanMessage(message.kwargs);
-        // 恢复时间戳
-        if (message.additional_kwargs?.timestamp) {
-          msg.additional_kwargs = {
-            ...msg.additional_kwargs,
-            timestamp: message.additional_kwargs.timestamp
-          };
-        }
-        return msg;
-      } else if (message.id.includes('AIMessage')) {
-        const msg = new AIMessage(message.kwargs);
-        // 恢复时间戳
-        if (message.additional_kwargs?.timestamp) {
-          msg.additional_kwargs = {
-            ...msg.additional_kwargs,
-            timestamp: message.additional_kwargs.timestamp
-          };
-        }
-        return msg;
-      } else if (message.id.includes('ToolMessage')) {
-        const msg = new ToolMessage(message.kwargs);
-        // 恢复时间戳
-        if (message.additional_kwargs?.timestamp) {
-          msg.additional_kwargs = {
-            ...msg.additional_kwargs,
-            timestamp: message.additional_kwargs.timestamp
-          };
-        }
-        return msg;
-      }
-    });
+    messages = previousMessages
+      .map((message: any) => restoreMessage(message))
+      .filter(Boolean);
     console.log("init messages", messages);
     // init toolCallStates
     toolCallStates.clear();
     const toolCallStatesString = localStorage.getItem('toolCallStates');
     console.log("toolCallStatesString", toolCallStatesString);
     if (toolCallStatesString) {
-      const toolCallStatesObj = JSON.parse(toolCallStatesString);
-      for (const [key, value] of Object.entries(toolCallStatesObj)) {
-        toolCallStates.set(key, value as 'confirmed' | 'rejected' | 'none');
+      try {
+        const toolCallStatesObj = JSON.parse(toolCallStatesString);
+        for (const [key, value] of Object.entries(toolCallStatesObj)) {
+          toolCallStates.set(key, value as 'confirmed' | 'rejected' | 'none');
+        }
+      } catch (error) {
+        console.warn("Failed to parse toolCallStates cache, resetting it.", error);
+        localStorage.removeItem("toolCallStates");
       }
     }
 
