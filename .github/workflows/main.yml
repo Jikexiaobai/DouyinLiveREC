@@ -81,16 +81,21 @@ jobs:
           printf '%s\n' 'C:\Program Files\LLVM\bin' >> "$GITHUB_PATH"
           printf '%s\n' 'C:\Program Files\CMake\bin' >> "$GITHUB_PATH"
 
-      - name: Clean whisper-rs-sys build cache (Windows)
+      - name: Configure whisper-rs environment (macOS)
+        if: startsWith(matrix.platform, 'macos-')
+        run: echo "WHISPER_DONT_GENERATE_BINDINGS=1" >> "$GITHUB_ENV"
+
+      - name: Configure LIBCLANG_PATH (Windows)
         if: matrix.platform == 'windows-latest'
         shell: bash
-        run: |
-          rm -rf src-tauri/target/release/build/whisper-rs-sys-* 2>/dev/null || true
-          rm -rf src-tauri/target/debug/build/whisper-rs-sys-* 2>/dev/null || true
+        run: echo "LIBCLANG_PATH=C:/Program Files/LLVM/bin" >> "$GITHUB_ENV"
+
+      - name: Clean whisper-rs-sys build cache (Windows)
+        if: matrix.platform == 'windows-latest'
+        working-directory: src-tauri
+        run: cargo clean -p whisper-rs-sys
 
       - name: Build artifacts
-        env:
-          WHISPER_DONT_GENERATE_BINDINGS: 1
         run: ${{ matrix.build_cmd }}
 
       - name: Upload macOS artifact
