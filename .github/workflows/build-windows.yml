@@ -2,6 +2,17 @@ name: Build Windows MSI
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - Siuyechu
+      - main
+      - develop
+    paths:
+      - src-tauri/**
+      - src/**
+      - package.json
+      - yarn.lock
+      - .github/workflows/build-windows.yml
 
 jobs:
   build-windows-msi:

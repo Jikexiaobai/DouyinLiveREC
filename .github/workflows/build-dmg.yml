@@ -12,19 +12,6 @@ on:
           - aarch64-apple-darwin
           - x86_64-apple-darwin
           - universal
-  push:
-    branches:
-      - Siuyechu
-      - main
-      - develop
-    paths:
-      - src-tauri/**
-      - src/**
-      - package.json
-      - yarn.lock
-      - scripts/build-macos-dmg.sh
-      - scripts/package-macos-dmg.sh
-      - .github/workflows/build-dmg.yml
 
 env:
   APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
