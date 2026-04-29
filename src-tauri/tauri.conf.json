@@ -20,9 +20,9 @@
       "minimumSystemVersion": "10.15"
     }
   },
-  "productName": "ShadowVerse",
+  "productName": "LiveRecSlice",
   "version": "../package.json",
-  "identifier": "cn.ShadowVerse",
+  "identifier": "cn.LiveRecSlice",
   "plugins": {
     "sql": {
       "preload": ["sqlite:data_v2.db"]

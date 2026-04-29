@@ -91,7 +91,7 @@ fn normalize_cookie_string_for_compare(cookies: &str) -> String {
     pairs.join("; ")
 }
 fn resolve_roaming_accounts_file_path() -> Option<PathBuf> {
-    platform_dirs::AppDirs::new(Some("cn.ShadowVerse"), false)
+    platform_dirs::AppDirs::new(Some("cn.LiveRecSlice"), false)
         .map(|dirs| dirs.config_dir.join("accounts.toml"))
 }
 

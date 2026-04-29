@@ -6435,8 +6435,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "shadowverse"
-version = "3.19.7"
+name = "liverecslice"
+version = "4.0.0"
 dependencies = [
  "aead",
  "aes-gcm",

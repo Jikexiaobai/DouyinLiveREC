@@ -3,12 +3,12 @@ members = ["crates/danmu_stream", "crates/recorder"]
 resolver = "2"
 
 [package]
-name = "shadowverse"
-version = "3.19.7"
-description = "ShadowVerse"
+name = "liverecslice"
+version = "4.0.0"
+description = "LiveRecSlice"
 authors = ["Laihiujin+Xinrea"]
 license = ""
-repository = ""
+repository = "https://github.com/Jikexiaobai/LiveRecSlice"
 edition = "2021"
 
 [lints.clippy]

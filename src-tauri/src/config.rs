@@ -376,7 +376,7 @@ fn locate_accounts_file(name: &str) -> Option<PathBuf> {
         candidates.push(cwd.join("src-tauri").join(name));
         candidates.push(cwd.join(name));
     }
-    if let Some(app_dirs) = platform_dirs::AppDirs::new(Some("cn.ShadowVerse"), false) {
+    if let Some(app_dirs) = platform_dirs::AppDirs::new(Some("cn.LiveRecSlice"), false) {
         candidates.push(app_dirs.config_dir.join(name));
         candidates.push(app_dirs.data_dir.join(name));
     }
@@ -398,7 +398,7 @@ pub(crate) fn resolve_accounts_file_write_path() -> PathBuf {
             return parent.join("accounts.toml");
         }
     }
-    if let Some(app_dirs) = platform_dirs::AppDirs::new(Some("cn.ShadowVerse"), false) {
+    if let Some(app_dirs) = platform_dirs::AppDirs::new(Some("cn.LiveRecSlice"), false) {
         return app_dirs.config_dir.join("accounts.toml");
     }
     if let Ok(cwd) = env::current_dir() {

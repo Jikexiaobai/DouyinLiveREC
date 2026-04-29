@@ -7,7 +7,7 @@ jobs:
   build-windows-msi:
     runs-on: windows-latest
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -69,12 +69,30 @@ jobs:
         working-directory: src-tauri
         run: cargo clean -p whisper-rs-sys
 
+      - name: Get version
+        id: version
+        shell: bash
+        run: echo 'version='$(node -p "require('./package.json').version") >> "$GITHUB_OUTPUT"
+
       - name: Build Windows MSI
         run: yarn tauri build --features gui --config src-tauri/tauri.windows.cpu.conf.json --bundles msi
+
+      - name: Create or update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: LiveRecSlice v${{ steps.version.outputs.version }}
+          draft: true
+          prerelease: false
+          body: |
+            Automated Windows MSI build for LiveRecSlice v${{ steps.version.outputs.version }}.
+          files: src-tauri/target/release/bundle/msi/*.msi
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN != '' && secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Upload MSI artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ShadowVerse-Windows-CPU-MSI
+          name: LiveRecSlice-Windows-CPU-MSI
           path: src-tauri/target/release/bundle/msi/*.msi
           if-no-files-found: error

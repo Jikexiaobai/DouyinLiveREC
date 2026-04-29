@@ -437,7 +437,7 @@ impl RecorderManager {
                         self.app_handle
                             .notification()
                             .builder()
-                            .title("ShadowVerse - 直播开始")
+                            .title("LiveRecSlice - 直播开始")
                             .body(format!(
                                 "{} 开启了直播：{}",
                                 recorder.user_info.user_name, recorder.room_info.room_title
@@ -462,7 +462,7 @@ impl RecorderManager {
                         self.app_handle
                             .notification()
                             .builder()
-                            .title("ShadowVerse - 直播结束")
+                            .title("LiveRecSlice - 直播结束")
                             .body(format!(
                                 "{} 结束了直播：{}",
                                 recorder.user_info.user_name, recorder.room_info.room_title

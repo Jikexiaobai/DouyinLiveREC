@@ -1,7 +1,6 @@
 ﻿<script lang="ts">
-  import { invoke } from "../lib/invoker";
-  import { open } from "@tauri-apps/plugin-dialog";
-  import { TAURI_ENV } from "../lib/invoker";
+  import { invoke, open as openExternal } from "../lib/invoker";
+  import { open as dialogOpen } from "@tauri-apps/plugin-dialog";
 
   import type { Config } from "../lib/interface";
   import {
@@ -57,6 +56,9 @@
     https_proxy: "",
   };
 
+  const appVersion = `V${__APP_VERSION__}`;
+  const githubRepoUrl = "https://github.com/Jikexiaobai/LiveRecSlice";
+
   let showModal = false;
   let endpoint = localStorage.getItem("endpoint") || "";
   let endpointValue = endpoint;
@@ -108,7 +110,7 @@
   }
 
   async function browse_folder() {
-    const selected = await open({ directory: true });
+    const selected = await dialogOpen({ directory: true });
     return Array.isArray(selected) ? selected[0] : selected;
   }
 
@@ -175,7 +177,7 @@
   }
 
   async function handleWhisperModelPathChange() {
-    const selected = await open({
+    const selected = await dialogOpen({
       multiple: false,
       filters: [
         {
@@ -292,11 +294,29 @@
     <div class="p-6 space-y-6">
       <!-- Header -->
       <div
-        class="flex items-center justify-between dark:bg-black py-2 -mt-2 z-10"
+        class="flex items-start justify-between gap-4 dark:bg-black py-2 -mt-2 z-10"
       >
-        <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
-          Settings
-        </h1>
+        <div class="space-y-2">
+          <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
+            LiveRecSlice 设置
+          </h1>
+          <div class="space-y-1">
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+              {appVersion}
+            </p>
+            <button
+              class="text-sm text-blue-600 transition-colors hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
+              on:click={() => openExternal(githubRepoUrl)}
+            >
+              Github: {githubRepoUrl}
+            </button>
+          </div>
+        </div>
+        <p
+          class="pt-1 text-sm text-right text-gray-500 dark:text-gray-400 whitespace-nowrap"
+        >
+          开发者：极客小白_白(Cutecycle)
+        </p>
       </div>
 
       <!-- Settings Sections -->

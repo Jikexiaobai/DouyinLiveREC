@@ -13,8 +13,8 @@ function Rename-And-MoveBundle {
     }
 
     Get-ChildItem -Path $BundlePath -File | ForEach-Object {
-        $newName = $_.Name -replace 'ShadowVerse', "ShadowVerse-$Suffix"
-        $newName = $newName -replace 'shadowverse', "shadowverse-$Suffix"
+        $newName = $_.Name -replace 'LiveRecSlice', "LiveRecSlice-$Suffix"
+        $newName = $newName -replace 'liverecslice', "liverecslice-$Suffix"
 
         if ($Debug) {
             $newName = $newName -replace '\.msi$', '-debug.msi'

@@ -7,7 +7,7 @@
   let releases = [];
 
   // get releases from github api
-  fetch("https://api.github.com/repos/laihiujin/ShadowVerse/releases")
+  fetch("https://api.github.com/repos/Jikexiaobai/LiveRecSlice/releases")
     .then((response) => response.json())
     .then((data) => {
       // Filter out prerelease versions
@@ -67,7 +67,7 @@
       </div>
       <div>
         <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
-          ShadowVerse
+          LiveRecSlice
         </h1>
         <p class="text-gray-500 dark:text-gray-400">Version {version}</p>
       </div>

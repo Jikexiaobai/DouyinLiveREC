@@ -1,4 +1,4 @@
-# ShadowVerse contribute guide
+# LiveRecSlice contribute guide
 
 ## Project Setup
 
