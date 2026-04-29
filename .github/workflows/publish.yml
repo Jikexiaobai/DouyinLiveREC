@@ -149,19 +149,24 @@ jobs:
           sub-packages: '["nvcc", "cudart"]'
 
       # ---------- 构建 & 发布 ----------
-      - name: Clean whisper-rs-sys build cache (Windows)
+      - name: Configure whisper-rs environment (macOS)
+        if: startsWith(matrix.platform, 'macos-')
+        run: echo "WHISPER_DONT_GENERATE_BINDINGS=1" >> "$GITHUB_ENV"
+
+      - name: Configure LIBCLANG_PATH (Windows)
         if: matrix.platform == 'windows-latest'
         shell: bash
-        run: |
-          rm -rf src-tauri/target/release/build/whisper-rs-sys-* 2>/dev/null || true
-          rm -rf src-tauri/target/debug/build/whisper-rs-sys-* 2>/dev/null || true
+        run: echo "LIBCLANG_PATH=C:/Program Files/LLVM/bin" >> "$GITHUB_ENV"
+
+      - name: Clean whisper-rs-sys build cache (Windows)
+        if: matrix.platform == 'windows-latest'
+        working-directory: src-tauri
+        run: cargo clean -p whisper-rs-sys
+
       - name: Build and publish Tauri app
         if: ${{ !startsWith(matrix.label, 'macos-') }}
         uses: tauri-apps/tauri-action@v0
         env:
-          # If RELEASE_TOKEN exists (PAT with repo scope), prefer it.
-          # Fallback to the default GITHUB_TOKEN.
-          WHISPER_DONT_GENERATE_BINDINGS: "1"
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN != '' && secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -169,7 +174,6 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          # CUDA 环境变量（仅 Windows CUDA 生效）
           CUDA_PATH: ${{ matrix.platform == 'windows-latest' && contains(matrix.args, 'cuda') && env.CUDA_PATH || '' }}
         with:
           tagName: ${{ github.ref_name }}
