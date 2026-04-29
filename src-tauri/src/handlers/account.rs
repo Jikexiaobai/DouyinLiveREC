@@ -2413,11 +2413,6 @@ async fn get_douyin_webview_guest_cookies(
             "sid_guard",
             "uid_tt",
             "uid_tt_ss",
-            "s_v_web_id",
-            "ttwid",
-            "tt_webid",
-            "tt_webid_v2",
-            "device_id",
         ],
     );
 
